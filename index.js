@@ -100,7 +100,7 @@ app.listen(PORT, () => {
 async function startBot() {
 
   const { state, saveCreds } =
-    await useMultiFileAuthState("auth_info_new");
+    await useMultiFileAuthState("/app/auth_info_new");
 
   sock = makeWASocket({
     auth: state,
