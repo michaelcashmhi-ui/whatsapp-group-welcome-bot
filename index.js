@@ -134,6 +134,99 @@ app.listen(PORT, () => {
 
 
 /*
+ * Find the person's WhatsApp display name
+ */
+async function getDisplayName(participant, groupId) {
+
+  const number =
+    participant.split("@")[0];
+
+  let displayName = null;
+
+
+  /*
+   * First try the group participant information.
+   */
+  try {
+
+    const metadata =
+      await sock.groupMetadata(groupId);
+
+    const member =
+      metadata.participants.find(
+        p => p.id === participant
+      );
+
+    if (member) {
+
+      displayName =
+        member.notify ||
+        member.name ||
+        null;
+
+    }
+
+  } catch (error) {
+
+    console.log(
+      "Group name lookup failed:",
+      error.message
+    );
+
+  }
+
+
+  /*
+   * Try WhatsApp contact information.
+   */
+  if (!displayName) {
+
+    try {
+
+      const contact =
+        await sock.onWhatsApp(participant);
+
+      if (
+        contact &&
+        contact[0]
+      ) {
+
+        displayName =
+          contact[0].name ||
+          contact[0].notify ||
+          contact[0].verifiedName ||
+          null;
+
+      }
+
+    } catch (error) {
+
+      console.log(
+        "Contact name lookup failed:",
+        error.message
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Final fallback.
+   */
+  if (!displayName) {
+
+    displayName = number;
+
+  }
+
+
+  return displayName;
+
+}
+
+
+/*
  * Start WhatsApp bot
  */
 async function startBot() {
@@ -234,7 +327,7 @@ async function startBot() {
 
       console.log(
         "Group update:",
-        update
+        JSON.stringify(update)
       );
 
 
@@ -268,61 +361,52 @@ async function startBot() {
 
 
       /*
-       * Welcome each new member.
+       * Welcome every new member.
        */
       for (
         const participant of update.participants
       ) {
 
-        let displayName =
+        console.log(
+          `New member detected: ${participant}`
+        );
+
+
+        /*
+         * Get actual WhatsApp display name.
+         */
+        const displayName =
+          await getDisplayName(
+            participant,
+            update.id
+          );
+
+
+        console.log(
+          `Detected name: ${displayName}`
+        );
+
+
+        /*
+         * WhatsApp mention format.
+         */
+        const mentionNumber =
           participant.split("@")[0];
 
 
         /*
-         * Try to get the person's
-         * WhatsApp profile/contact name.
-         */
-        try {
-
-          const contact =
-            await sock.onWhatsApp(
-              participant
-            );
-
-
-          if (
-            contact &&
-            contact[0]
-          ) {
-
-            displayName =
-              contact[0].name ||
-              contact[0].notify ||
-              contact[0].verifiedName ||
-              displayName;
-
-          }
-
-        } catch (error) {
-
-          console.log(
-            "Could not get WhatsApp name:",
-            error.message
-          );
-
-        }
-
-
-        /*
-         * Make the person's WhatsApp name
-         * appear in the welcome message
-         * and tag the actual account.
+         * Welcome message.
+         *
+         * The display name is shown to the person.
+         * The @number is included so WhatsApp
+         * can create the actual mention.
          */
         const welcomeMessage =
           `👋 Welcome to the group, ${displayName}! 🎉\n\n` +
           `We're happy to have you here.\n\n` +
           `Feel free to introduce yourself ` +
-          `and enjoy the community!`;
+          `and enjoy the community!\n\n` +
+          `@${mentionNumber}`;
 
 
         try {
