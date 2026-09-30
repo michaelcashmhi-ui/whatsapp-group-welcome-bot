@@ -147,13 +147,19 @@ async function startBot() {
   /*
    * Detect new members joining groups.
    */
-  sock.ev.on("group-participants.update", async (update) => {
+  const TARGET_GROUP_ID = "120363412413157771@g.us";
 
-    console.log("Group update:", update);
+sock.ev.on("group-participants.update", async (update) => {
 
-    if (update.action !== "add") {
-      return;
-    }
+  console.log("Group update:", update);
+
+  if (update.id !== TARGET_GROUP_ID) {
+    return;
+  }
+
+  if (update.action !== "add") {
+    return;
+  }
 
     /*
      * Welcome every newly added member.
