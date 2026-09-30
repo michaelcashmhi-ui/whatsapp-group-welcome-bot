@@ -166,11 +166,20 @@ sock.ev.on("group-participants.update", async (update) => {
      */
     for (const participant of update.participants) {
 
-      const name =
-        participant.split("@")[0];
+      let name = participant.split("@")[0];
 
+try {
+  const contact = await sock.onWhatsApp(participant);
+
+  if (contact && contact[0]?.name) {
+    name = contact[0].name;
+  }
+
+} catch (error) {
+  console.log("Could not get contact name");
+}
       const welcomeMessage =
-        `👋 Welcome to the group, @${name}!\n\n` +
+      `👋 Welcome to the group, ${name}! 🎉\n\n` +
         `We're happy to have you here. 🎉\n\n` +
         `Feel free to introduce yourself ` +
         `and enjoy the community!`;
