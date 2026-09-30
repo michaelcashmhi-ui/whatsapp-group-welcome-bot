@@ -1,0 +1,14 @@
+{
+  "name": "whatsapp-group-welcome-bot",
+  "version": "1.0.0",
+  "description": "WhatsApp group welcome bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "express": "^5.1.0",
+    "qrcode": "^1.5.4"
+  }
+}
